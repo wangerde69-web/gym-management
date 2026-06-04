@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gym.mapper.BookingMapper">
+
+    <!-- 联表查询预约详情（一次查询替代 N+1） -->
+    <resultMap id="BookingDetailResultMap" type="com.gym.entity.Booking">
+        <id column="id" property="id"/>
+        <result column="member_id" property="memberId"/>
+        <result column="course_id" property="courseId"/>
+        <result column="booking_time" property="bookingTime"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <!-- 扩展字段（别名联表查询结果） -->
+        <result column="member_name" property="memberName"/>
+        <result column="course_name" property="courseName"/>
+        <result column="coach_name" property="coachName"/>
+    </resultMap>
+
+    <!-- 查询所有预约记录并联表获取会员名、课程名、教练名 -->
+    <select id="selectListWithDetail" resultMap="BookingDetailResultMap">
+        SELECT b.*,
+               m.name       AS member_name,
+               c.name       AS course_name,
+               co.name      AS coach_name
+        FROM booking b
+        LEFT JOIN member m  ON b.member_id = m.id
+        LEFT JOIN course c  ON b.course_id = c.id
+        LEFT JOIN coach co  ON c.coach_id = co.id
+        ORDER BY b.create_time DESC
+    </select>
+
+    <!-- 按会员 ID 查询预约记录并联表获取详情 -->
+    <select id="selectListByMemberIdWithDetail" resultMap="BookingDetailResultMap">
+        SELECT b.*,
+               m.name       AS member_name,
+               c.name       AS course_name,
+               co.name      AS coach_name
+        FROM booking b
+        LEFT JOIN member m  ON b.member_id = m.id
+        LEFT JOIN course c  ON b.course_id = c.id
+        LEFT JOIN coach co  ON c.coach_id = co.id
+        WHERE b.member_id = #{memberId}
+        ORDER BY b.create_time DESC
+    </select>
+
+    <!-- 分页联表查询预约记录 -->
+    <select id="selectPageWithDetail" resultMap="BookingDetailResultMap">
+        SELECT b.*,
+               m.name       AS member_name,
+               c.name       AS course_name,
+               co.name      AS coach_name
+        FROM booking b
+        LEFT JOIN member m  ON b.member_id = m.id
+        LEFT JOIN course c  ON b.course_id = c.id
+        LEFT JOIN coach co  ON c.coach_id = co.id
+        ORDER BY b.create_time DESC
+    </select>
+
+</mapper>

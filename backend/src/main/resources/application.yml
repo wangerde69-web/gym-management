@@ -1,0 +1,43 @@
+# 服务器配置：端口与字符编码
+server:
+  port: 8081
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force-response: true
+
+# Spring 框架配置：数据源与文件上传限制
+spring:
+  application:
+    name: gym-server
+  # MySQL 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gym?useUnicode=true&characterEncoding=utf8&connectionCharacterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  # 文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# MyBatis-Plus ORM 配置：Mapper XML 扫描、驼峰映射与 SQL 日志输出
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.gym.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# JWT 令牌配置：签名密钥与过期时间（毫秒）
+jwt:
+  secret: gym-secret-key-2024-springboot-vue3-jwt-token
+  expiration: 86400000
+
+# LLM 大模型配置：用于体态分析的 AI 增强接口
+llm:
+  api-url: http://localhost:1234/v1
+  model: auto
+  enabled: true

@@ -1,0 +1,120 @@
+/* ====== 设计变量 ====== */
+:root {
+  /* 颜色 */
+  --gold: #c9a96e;
+  --gold-hover: #d4b87a;
+  --bg-deep: #0a0a0f;
+  --bg-card: #111115;
+  --bg-nav: rgba(10, 10, 15, 0.94);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --text-primary: #f0f0f0;
+  --text-secondary: rgba(240, 240, 240, 0.55);
+  --text-muted: rgba(240, 240, 240, 0.28);
+
+  /* 间距 — 宽松 */
+  --nav-height: 72px;
+  --content-padding-x: max(5vw, 24px);
+  --content-padding-y: 48px;
+  --section-gap: 80px;
+
+  /* 字号 — 加大 */
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-hero: clamp(48px, 8vw, 100px);
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  font-size: var(--text-base);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 0px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: transparent; }
+
+/* ====== 共享布局类 ====== */
+.page-dark { min-height: 100vh; background: var(--bg-deep); }
+.content-wrap { padding: calc(var(--nav-height) + var(--content-padding-y)) var(--content-padding-x) var(--content-padding-y); }
+.page-h1 { font-size: var(--text-2xl); font-weight: 800; color: #fff; margin-bottom: 28px; }
+.empty-state { text-align: center; padding: 80px 0; color: var(--text-muted); font-size: var(--text-base); }
+
+/* ====== 公共顶部导航栏 ====== */
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg-nav); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); }
+.top-nav-inner { padding: 0 var(--content-padding-x); height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; }
+.top-nav .brand { font-size: var(--text-xl); font-weight: 800; letter-spacing: 3px; color: #fff; text-decoration: none; }
+.top-nav .nav-links { display: flex; gap: clamp(20px, 3vw, 40px); }
+.top-nav .nav-link { font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); text-decoration: none; transition: color .2s; }
+.top-nav .nav-link:hover, .top-nav .nav-link.active { color: #fff; }
+.top-nav .nav-right { display: flex; align-items: center; gap: 16px; }
+
+/* ====== 公共登录页布局 ====== */
+.login-wrapper { display: flex; min-height: 100vh; }
+.login-right { width: 520px; display: flex; align-items: center; justify-content: center; background: #141210; border-left: none; }
+.login-right .form-wrap { width: 380px; padding: 40px 0; }
+.login-right .back-link { text-align: center; margin-top: 40px; }
+.login-right .back-link a { font-size: var(--text-base); color: rgba(255, 255, 255, 0.15); text-decoration: none; }
+@media (max-width: 768px) { .login-wrapper { flex-direction: column; } .login-right { width: 100%; flex: 1; } .login-right .form-wrap { width: 100%; padding: 24px; } }
+
+/* ====== Naive UI 覆写 — 暗色奢华主题 ====== */
+
+/* 全局 NConfigProvider 已设置主题，这些是针对金色调色板的硬覆写 */
+
+/* 按钮尺寸 — 全部加大 */
+.n-button { font-weight: 600 !important; border-radius: var(--radius-sm) !important; letter-spacing: 0.4px !important; }
+.n-button--small-type { font-size: var(--text-sm) !important; padding: 6px 16px !important; height: auto !important; }
+.n-button--medium-type { font-size: var(--text-base) !important; padding: 10px 24px !important; height: auto !important; }
+.n-button--large-type { font-size: var(--text-lg) !important; padding: 14px 36px !important; height: auto !important; }
+
+/* 卡片 */
+.n-card { background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important; border-radius: var(--radius-lg) !important; }
+.n-card-header { border-bottom: 1px solid var(--border-subtle) !important; padding: 18px 22px !important; }
+.n-card-header__main { font-size: var(--text-base) !important; font-weight: 700 !important; color: #fff !important; }
+.n-card__content { padding: 22px !important; }
+
+/* 表格 — 更大的行高 */
+.n-data-table { font-size: var(--text-base) !important; }
+.n-data-table td { padding: 16px 18px !important; }
+.n-data-table th { padding: 14px 18px !important; font-size: var(--text-sm) !important; font-weight: 700 !important; }
+.n-data-table .n-data-table-td { padding: 16px 18px !important; }
+
+/* 输入框/选择框 — 加大 */
+.n-input { font-size: var(--text-base) !important; }
+.n-input .n-input__input-el { font-size: var(--text-base) !important; }
+.n-select .n-base-selection-label { font-size: var(--text-base) !important; }
+
+/* 标签 */
+.n-tag { font-size: var(--text-sm) !important; padding: 4px 14px !important; border-radius: var(--radius-sm) !important; }
+
+/* 对话框 */
+.n-dialog { border-radius: var(--radius-lg) !important; }
+.n-dialog__title { font-size: var(--text-xl) !important; font-weight: 700 !important; }
+.n-dialog .n-base-close { font-size: 20px !important; }
+
+/* 选项卡 */
+.n-tabs .n-tabs-tab { font-size: var(--text-base) !important; }
+
+/* 消息 */
+.n-message-container .n-message { font-size: var(--text-base) !important; padding: 16px 24px !important; border-radius: var(--radius-md) !important; }
+
+/* 下拉菜单 */
+.n-dropdown-menu .n-dropdown-option { font-size: var(--text-base) !important; padding: 10px 20px !important; }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gym.mapper.CardMapper">
+
+    <!-- 联表查询所有会员卡记录，关联获取会员姓名，动态计算过期时间 -->
+    <resultMap id="CardDetailResultMap" type="com.gym.entity.Card">
+        <id column="id" property="id"/>
+        <result column="member_id" property="memberId"/>
+        <result column="card_type" property="cardTypeKey"/>
+        <result column="price" property="price"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="member_name" property="memberName"/>
+        <result column="end_date" property="endDate"/>
+    </resultMap>
+
+    <select id="selectListWithDetail" resultMap="CardDetailResultMap">
+        SELECT c.*,
+               m.name AS member_name,
+               CASE ct.validity_unit
+                   WHEN 'MONTH' THEN DATE(c.create_time) + INTERVAL ct.validity_days MONTH
+                   WHEN 'YEAR'  THEN DATE(c.create_time) + INTERVAL ct.validity_days YEAR
+                   ELSE DATE(c.create_time) + INTERVAL ct.validity_days DAY
+               END AS end_date
+        FROM card c
+        LEFT JOIN member m ON c.member_id = m.id
+        LEFT JOIN card_type ct ON c.card_type = ct.card_key
+        ORDER BY c.create_time DESC
+    </select>
+
+</mapper>
