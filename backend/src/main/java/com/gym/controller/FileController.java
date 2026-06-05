@@ -2,7 +2,6 @@ package com.gym.controller;
 
 import com.gym.config.AuthHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,9 +17,6 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class FileController {
 
-    @Value("${server.port:8081}")
-    private String serverPort;
-
     @Autowired
     private AuthHelper auth;
 
@@ -29,7 +25,7 @@ public class FileController {
         return System.getProperty("user.dir") + "/uploads/";
     }
 
-    // 文件上传接口：校验文件、安全化文件名后保存至 uploads 目录并返回可访问的完整 URL
+    // 文件上传接口：校验文件、安全化文件名后保存至 uploads 目录并返回可访问的相对 URL
     @PostMapping("/upload")
     public Map<String, Object> upload(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) return auth.resp(400, "请选择文件");
@@ -51,7 +47,8 @@ public class FileController {
             Path filePath = uploadDir.resolve(filename);
             file.transferTo(filePath.toFile());
 
-            String url = "http://localhost:" + serverPort + "/uploads/" + filename;
+            // 返回相对 URL，部署到不同域名/Nginx 反代后仍然有效
+            String url = "/uploads/" + filename;
             Map<String, Object> result = auth.ok();
             result.put("url", url);
             result.put("msg", "上传成功");

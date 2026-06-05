@@ -17,43 +17,42 @@
         <result column="coach_name" property="coachName"/>
     </resultMap>
 
-    <!-- 查询所有预约记录并联表获取会员名、课程名、教练名 -->
-    <select id="selectListWithDetail" resultMap="BookingDetailResultMap">
-        SELECT b.*,
-               m.name       AS member_name,
-               c.name       AS course_name,
-               co.name      AS coach_name
+    <!-- 复用的联表 SQL 片段（含 select 字段与 from/join 子句） -->
+    <sql id="BookingDetailColumns">
+        b.*,
+        m.name       AS member_name,
+        c.name       AS course_name,
+        co.name      AS coach_name
+    </sql>
+    <sql id="BookingDetailJoins">
         FROM booking b
         LEFT JOIN member m  ON b.member_id = m.id
         LEFT JOIN course c  ON b.course_id = c.id
         LEFT JOIN coach co  ON c.coach_id = co.id
+    </sql>
+
+    <!-- 查询所有预约记录并联表获取会员名、课程名、教练名 -->
+    <select id="selectListWithDetail" resultMap="BookingDetailResultMap">
+        SELECT
+        <include refid="BookingDetailColumns"/>
+        <include refid="BookingDetailJoins"/>
         ORDER BY b.create_time DESC
     </select>
 
     <!-- 按会员 ID 查询预约记录并联表获取详情 -->
     <select id="selectListByMemberIdWithDetail" resultMap="BookingDetailResultMap">
-        SELECT b.*,
-               m.name       AS member_name,
-               c.name       AS course_name,
-               co.name      AS coach_name
-        FROM booking b
-        LEFT JOIN member m  ON b.member_id = m.id
-        LEFT JOIN course c  ON b.course_id = c.id
-        LEFT JOIN coach co  ON c.coach_id = co.id
+        SELECT
+        <include refid="BookingDetailColumns"/>
+        <include refid="BookingDetailJoins"/>
         WHERE b.member_id = #{memberId}
         ORDER BY b.create_time DESC
     </select>
 
     <!-- 分页联表查询预约记录 -->
     <select id="selectPageWithDetail" resultMap="BookingDetailResultMap">
-        SELECT b.*,
-               m.name       AS member_name,
-               c.name       AS course_name,
-               co.name      AS coach_name
-        FROM booking b
-        LEFT JOIN member m  ON b.member_id = m.id
-        LEFT JOIN course c  ON b.course_id = c.id
-        LEFT JOIN coach co  ON c.coach_id = co.id
+        SELECT
+        <include refid="BookingDetailColumns"/>
+        <include refid="BookingDetailJoins"/>
         ORDER BY b.create_time DESC
     </select>
 

@@ -74,12 +74,13 @@ public class StatController {
     @GetMapping("/income")
     public Map<String, Object> income(@RequestParam(required = false) Integer year) {
         try {
-            final int y = (year != null) ? year : LocalDate.now().getYear();    
+            final int y = (year != null) ? year : LocalDate.now().getYear();
             List<String> months = new ArrayList<>(Arrays.asList("1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"));
-            List<Integer> incomeList = new ArrayList<>();
-            LocalDateTime yearStart = LocalDateTime.of(y, 1, 1, 0, 0, 0);       
-            LocalDateTime yearEnd = LocalDateTime.of(y, 12, 31, 23, 59, 59);    
-            // 查询该年度内有效会员卡记录（排除已退款、未支付、未支付待审状态） 
+            // 返回 BigDecimal 列表以保留金额精度（前端按需格式化）
+            List<BigDecimal> incomeList = new ArrayList<>();
+            LocalDateTime yearStart = LocalDateTime.of(y, 1, 1, 0, 0, 0);
+            LocalDateTime yearEnd = LocalDateTime.of(y, 12, 31, 23, 59, 59);
+            // 查询该年度内有效会员卡记录（排除已退款、未支付、未支付待审状态）
             QueryWrapper<Card> incomeWrapper = new QueryWrapper<>();
             incomeWrapper.isNotNull("create_time")
                 .between("create_time", yearStart, yearEnd)
@@ -88,14 +89,14 @@ public class StatController {
             // 按月份汇总收入金额
             Map<Integer, BigDecimal> monthlyIncome = new HashMap<>();
             for (Card card : cards) {
-                if (card.getPrice() != null && card.getCreateTime() != null) {  
+                if (card.getPrice() != null && card.getCreateTime() != null) {
                     int month = card.getCreateTime().getMonthValue();
                     monthlyIncome.merge(month, card.getPrice(), BigDecimal::add);
                 }
             }
             // 构造 1-12 月的收入列表，无数据的月份补零
             for (int m = 1; m <= 12; m++) {
-                incomeList.add(monthlyIncome.containsKey(m) ? monthlyIncome.get(m).intValue() : 0);
+                incomeList.add(monthlyIncome.getOrDefault(m, BigDecimal.ZERO));
             }
             return auth.ok(Map.of("months", months, "income", incomeList));
         } catch (Exception e) {

@@ -118,3 +118,16 @@ body {
 
 /* 下拉菜单 */
 .n-dropdown-menu .n-dropdown-option { font-size: var(--text-base) !important; padding: 10px 20px !important; }
+
+/* ====== 共享组件样式 — 跨页面复用 ====== */
+
+/* 字段标签：用于表单中"预约日期 / 预约时间"等说明文字 */
+.field-label { font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 8px; }
+
+/* 页面顶部行：左侧标题 + 右侧返回链接 */
+.page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.back-link { color: var(--text-muted); text-decoration: none; font-size: var(--text-base); }
+
+/* 头像上传框：80×80 圆形 dashed 边框，LoginView 与 HomeView 共用 */
+.avatar-uploader { width: 80px; height: 80px; border-radius: 50%; border: 2px dashed rgba(201, 169, 110, 0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; transition: border-color .2s; }
+.avatar-uploader:hover { border-color: var(--gold); }

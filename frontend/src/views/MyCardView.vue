@@ -62,7 +62,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { NButton, NTag, useMessage, useDialog } from 'naive-ui'
 import request from '@/api'
 import UserMenu from '@/components/UserMenu.vue'
@@ -71,13 +70,14 @@ import { useUserMenu } from '@/composables/useUserMenu'
 import { fetchPayQr } from '@/composables/usePayment'
 
 // 页面状态和消息/对话框初始化
-const router = useRouter()
 const message = useMessage()
 const { onMenu } = useUserMenu()
 const dialog = useDialog()
 
 // 登录状态、我的卡列表、可选卡种、选中卡种、加载状态
-const logged = computed(() => !!localStorage.getItem('token'))
+// 使用 ref + 监听 storage 事件以保持响应式（避免 computed 读取 localStorage 不响应的问题）
+const logged = ref(!!localStorage.getItem('token'))
+window.addEventListener('storage', () => { logged.value = !!localStorage.getItem('token') })
 const mc = ref([]), cts = ref([]), sel = ref(''), ld = ref(false)
 const payRef = ref(null), pid = ref(null)
 // 根据选中卡种计算支付价格
@@ -158,8 +158,6 @@ onMounted(() => { fMc(); fCt() })
 
 <style scoped>
 /* ====== 我的会员卡页样式 ====== */
-.page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-.back-link { color: var(--text-muted); text-decoration: none; font-size: var(--text-base); }
 
 /* 我的会员卡 */
 .my-cards-section { margin-bottom: 48px; }

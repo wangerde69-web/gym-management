@@ -50,19 +50,26 @@ public class BookingController {
 
     // 新增预约：校验课程、日期、时间等必填字段后保存
     @PostMapping("/add")
-    public Map<String, Object> add(@RequestBody Booking booking, @RequestHeader(value = "Authorization", required = false) String token) {
+    public Map<String, Object> add(@RequestBody Map<String, Object> body, @RequestHeader(value = "Authorization", required = false) String token) {
         Integer userId = auth.extractUserId(token);
         if (userId == null) return auth.unauthorized();
-        if (booking.getCourseId() == null) return auth.resp(400, "请选择课程");
-        if (booking.getBookingTime() == null || booking.getBookingTime().trim().isEmpty()) return auth.resp(400, "请选择预约时间");
-        if (booking.getBookingTime().contains("-")) {
+        Object courseIdObj = body.get("courseId");
+        if (courseIdObj == null) return auth.resp(400, "请选择课程");
+        String bookingTime = body.get("bookingTime") == null ? null : body.get("bookingTime").toString();
+        String bookingDate = body.get("bookingDate") == null ? null : body.get("bookingDate").toString();
+        if (bookingTime == null || bookingTime.trim().isEmpty()) return auth.resp(400, "请选择预约时间");
+        if (bookingTime.contains("-")) {
             try {
-                String endTimeStr = booking.getBookingTime().split("-")[1].trim();
+                String endTimeStr = bookingTime.split("-")[1].trim();
                 LocalTime endTime = LocalTime.parse(endTimeStr);
                 if (LocalTime.now().isAfter(endTime)) return auth.resp(400, "该时间段已过，请选择其他时间");
             } catch (Exception ignored) {}
         }
+        Booking booking = new Booking();
         booking.setMemberId(userId);
+        if (courseIdObj instanceof Number) booking.setCourseId(((Number) courseIdObj).intValue());
+        // 若同时传了 bookingDate，则与 bookingTime 拼接为完整时间字符串供后端持久化
+        booking.setBookingTime(bookingDate != null && !bookingDate.isEmpty() ? bookingDate + " " + bookingTime : bookingTime);
         booking.setStatus(0);
         bookingService.save(booking);
         return auth.ok();

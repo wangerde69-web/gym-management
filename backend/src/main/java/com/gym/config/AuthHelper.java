@@ -48,6 +48,7 @@ public class AuthHelper {
     public Map<String, Object> ok(Object data) {
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);
+        result.put("msg", "操作成功");
         result.put("data", data);
         return result;
     }

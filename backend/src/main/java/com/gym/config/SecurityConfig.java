@@ -15,6 +15,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 /* Spring Security 安全配置，定义认证、授权规则及 CORS 跨域策略 */
 @Configuration
 @EnableWebSecurity
@@ -29,14 +31,16 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // CORS 跨域配置：允许所有来源访问
+    // CORS 跨域配置：生产环境应从 application.yml 注入允许的来源，避免使用通配符 + 凭证
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*");
+        // 使用明确来源而不是 "*"，可与 allowCredentials(true) 配合使用
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:8080"));
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

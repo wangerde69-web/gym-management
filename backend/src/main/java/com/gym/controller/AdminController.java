@@ -3,7 +3,6 @@ package com.gym.controller;
 import com.gym.config.AuthHelper;
 import com.gym.entity.Admin;
 import com.gym.service.AdminService;
-import com.gym.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -15,9 +14,6 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @Autowired
     private AuthHelper auth;
@@ -38,14 +34,10 @@ public class AdminController {
 
     // 获取当前登录管理员信息
     @GetMapping("/info")
-    public Map<String, Object> info(@RequestHeader("Authorization") String token) {
-        try {
-            token = token.substring(7);
-            Integer userId = jwtUtil.getUserId(token);
-            Admin admin = adminService.getInfo(userId);
-            return auth.ok(admin);
-        } catch (Exception e) {
-            return auth.resp(500, e.getMessage());
-        }
+    public Map<String, Object> info(@RequestHeader(value = "Authorization", required = false) String token) {
+        Integer userId = auth.extractUserId(token);
+        if (userId == null) return auth.unauthorized();
+        Admin admin = adminService.getById(userId);
+        return auth.ok(admin);
     }
 }

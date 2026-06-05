@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /* 会员卡服务实现类，实现购卡、支付确认、审批、退款等核心业务逻辑及会员卡自动过期定时任务 */
 @Service
 public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements CardService {
@@ -122,7 +124,7 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
 
     // 联表查询所有会员卡记录（含会员姓名）
     @Override
-    public java.util.List<Card> selectListWithDetail() {
+    public List<Card> selectListWithDetail() {
         return baseMapper.selectListWithDetail();
     }
 }

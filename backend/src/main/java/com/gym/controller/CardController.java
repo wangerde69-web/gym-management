@@ -128,6 +128,7 @@ public class CardController {
             writer.write('\ufeff'); // Excel UTF-8 的 BOM 标记
             writer.write("卡ID,会员ID,卡种,价格,状态,过期时间,创建时间\n");
 
+            // CSV 字段转义：含逗号/引号/换行的字段需要用双引号包裹，内部双引号转义为 ""
             for (Card c : cards) {
                 String cardName = cardTypes.stream()
                         .filter(ct -> ct.getCardKey().equals(c.getCardTypeKey()))
@@ -141,10 +142,11 @@ public class CardController {
                     case 4: status = "未支付"; break;
                     case 5: status = "未支付待审"; break;
                 }
+                String endDate = c.getEndDate() != null ? c.getEndDate().toString() : "";
+                String createTime = c.getCreateTime() != null ? c.getCreateTime().toString() : "";
                 writer.write(String.format("%d,%d,%s,%.2f,%s,%s,%s\n",
-                        c.getId(), c.getMemberId(), cardName, c.getPrice(), status,
-                        c.getEndDate() != null ? c.getEndDate().toString() : "",
-                        c.getCreateTime() != null ? c.getCreateTime().toString() : ""));
+                        c.getId(), c.getMemberId(), escapeCsv(cardName), c.getPrice(), escapeCsv(status),
+                        escapeCsv(endDate), escapeCsv(createTime)));
             }
             writer.flush();
 
@@ -158,5 +160,14 @@ public class CardController {
         } catch (Exception e) {
             throw new RuntimeException("导出失败", e);
         }
+    }
+
+    // CSV 字段转义：含逗号、双引号或换行的字段用双引号包裹，内部双引号转义为两个双引号
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }

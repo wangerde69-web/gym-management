@@ -8,6 +8,9 @@
           <router-link to="/" class="nav-link">首页</router-link>
           <span class="nav-link active">AI 体态分析</span>
         </nav>
+        <div class="nav-right">
+          <UserMenu v-if="logged" @command="onMenu" />
+        </div>
       </div>
     </header>
 
@@ -80,12 +83,17 @@
 import { ref, nextTick, onBeforeUnmount } from 'vue'
 import request from '@/api'
 import { NButton, useMessage } from 'naive-ui'
+import UserMenu from '@/components/UserMenu.vue'
+import { useUserMenu } from '@/composables/useUserMenu'
 
 // 体态分析页面状态：文件输入、加载态、分析结果、图片URL
 const fi = ref(null), loading = ref(false), res = ref(null), iu = ref('')
 // 结果展示相关 DOM 引用
 const ri = ref(null), oc = ref(null), cw = ref(null)
 const message = useMessage()
+const { onMenu } = useUserMenu()
+// 登录状态（用于 UserMenu 显示）
+const logged = ref(!!localStorage.getItem('token'))
 
 // 上传拍照提示
 const tips = [

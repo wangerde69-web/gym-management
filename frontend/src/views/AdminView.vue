@@ -156,7 +156,7 @@ import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { NLayout, NLayoutSider, NLayoutContent, NMenu, NButton, NConfigProvider, NGrid, NGridItem, NCard, NDataTable, NInput, NInputNumber, NSelect, NModal, NSpace, NTag, useMessage, useDialog, darkTheme } from 'naive-ui'
 import request from '@/api'
-import { useUpload } from '@/composables/useUpload'
+import { useFileUploader } from '@/composables/useUpload'
 
 // 侧边栏菜单主题覆写（暗色背景 + 金色高亮）
 const sidebarTheme = {
@@ -254,8 +254,10 @@ const filtered = computed(() => {
 
 // 列辅助函数
 // 状态值到标签文字和颜色的映射表
+// 注意：不同实体的 status 取值集合不同，命名上做了区分（cardStatus / coachStatus / courseStatus 等）
 const tagMap = {
-  status: { 0: ['待审核', 'warning'], 1: ['正常', 'success'], 2: ['维修中/已过期', 'warning'], 3: ['已退款', 'error'], 4: ['未支付', 'info'] },
+  // 通用 status：用于会员，0=停用, 1=正常
+  status: { 0: ['停用', 'warning'], 1: ['正常', 'success'] },
   bookingStatus: { 0: ['待确认', 'warning'], 1: ['已确认', 'success'], 2: ['已取消', 'info'] },
   cardStatus: { 0: ['待审核', 'warning'], 1: ['生效中', 'success'], 2: ['已过期', 'info'], 3: ['已退款', 'error'], 4: ['未支付', 'info'], 5: ['未支付待审', 'warning'] },
   coachStatus: { 1: ['在职', 'success'], 0: ['离职', 'error'] },
@@ -379,7 +381,7 @@ function openEdit(row) {
   editVis.value = true
 }
 
-const { onFileChange } = useUpload()
+const { onFileChange } = useFileUploader()
 
 // 编辑对话框中的图片上传处理
 function onUp(e) {

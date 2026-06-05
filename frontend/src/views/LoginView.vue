@@ -10,7 +10,7 @@
           <n-tab-pane name="register" tab="立即注册" />
         </n-tabs>
 
-        <!-- 登录 -->
+        <!-- 登录 / 注册 两个面板互斥，使用 v-if / v-else-if 避免同时渲染 -->
         <div v-if="tab === 'login'" class="form-area">
           <h2>欢迎回来</h2>
           <p class="form-sub">登录您的会员账户，开始今日训练</p>
@@ -27,8 +27,7 @@
           <div class="form-admin"><router-link to="/admin-login">管理员登录</router-link></div>
         </div>
 
-        <!-- 注册 -->
-        <div v-if="tab === 'register'" class="form-area">
+        <div v-else-if="tab === 'register'" class="form-area">
           <h2>创建账户</h2>
           <p class="form-sub">加入 GYMCORE，开启健康生活</p>
           <n-space vertical size="large" style="width: 100%" align="center">

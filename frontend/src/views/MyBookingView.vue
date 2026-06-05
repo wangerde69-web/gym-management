@@ -31,8 +31,9 @@
         </div>
       </div>
       <div v-else class="empty-state">
-        <p>暂无预约记录</p>
-        <n-button type="primary" size="large" @click="$router.push('/')">去预约课程</n-button>
+        <p>{{ loaded ? '暂无预约记录' : '正在加载...' }}</p>
+        <n-button v-if="loaded" type="primary" size="large" @click="$router.push('/')">去预约课程</n-button>
+        <n-button v-else type="primary" size="large" @click="fetch">重新加载</n-button>
       </div>
     </div>
   </div>
@@ -48,13 +49,16 @@ import request from '@/api'
 const router = useRouter(), bs = ref([])
 const message = useMessage()
 const dialog = useDialog()
+// 加载是否已完成，用于区分"暂无记录"和"加载失败"
+const loaded = ref(false)
 
 // 加载当前用户的预约列表
 function fetch() {
   request.get('/booking/my').then(r => {
+    loaded.value = true
     if (r.code === 200) bs.value = r.data || []
     else if (r.code === 401) { message.warning('请先登录'); router.push('/login') }
-  }).catch(() => message.error('加载失败'))
+  }).catch(() => { loaded.value = true; message.error('加载失败，请稍后重试') })
 }
 
 // 取消预约：弹出确认框后调用取消接口
@@ -92,8 +96,6 @@ onMounted(fetch)
 
 <style scoped>
 /* ====== 我的预约页样式 ====== */
-.page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-.back-link { color: var(--text-muted); text-decoration: none; font-size: var(--text-base); }
 /* 预约记录卡片 */
 .booking-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.01); margin-bottom: 14px; }
 .booking-info h3 { font-size: var(--text-lg); font-weight: 700; color: #fff; margin: 0 0 8px; }

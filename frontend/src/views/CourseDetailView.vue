@@ -106,12 +106,18 @@ function dd(ts) {
 
 // 预约支付流程：校验登录 → 打开支付弹窗 → 提交预约请求
 async function showPay() {
-  if (!localStorage.getItem('token')) { message.warning('请先登录'); router.push('/login'); return }
+  if (!localStorage.getItem('token')) {
+    message.warning('请先登录')
+    // 登录成功后跳回课程详情页
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
   if (!ok.value) { message.warning('请选择日期和时间'); return }
   const qr = await fetchPayQr()
   const result = await payRef.value.open(qr, c.value.price)
   if (!result) return
-  request.post('/booking/add', { courseId: c.value.id, bookingTime: bt.value }).then(r => {
+  // 同时发送日期（bd）和时间段（bt），后端才能知道用户预约的是哪一天哪一时段
+  request.post('/booking/add', { courseId: c.value.id, bookingTime: bt.value, bookingDate: bd.value }).then(r => {
     if (r.code === 200) { message.success('预约成功'); router.push('/my-bookings') }
     else message.error(r.msg || '预约失败')
   }).catch(() => message.error('请求失败'))
@@ -150,7 +156,6 @@ onMounted(() => {
 /* 右侧预约面板：固定悬浮 */
 .detail-sidebar { padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.01); position: sticky; top: calc(var(--nav-height) + 20px); }
 .detail-sidebar h3 { font-size: var(--text-lg); font-weight: 700; color: #fff; margin: 0 0 22px; }
-.field-label { font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 8px; }
 .time-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .booking-note { text-align: center; font-size: var(--text-sm); color: var(--text-muted); margin-top: 18px; }
 </style>

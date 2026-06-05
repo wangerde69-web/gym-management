@@ -280,7 +280,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { NButton, NTag, NModal, NInput, NRadioGroup, NRadio, NSpace, useMessage } from 'naive-ui'
 import { animate, stagger } from 'animejs'
@@ -288,7 +288,7 @@ import request from '@/api'
 import UserMenu from '@/components/UserMenu.vue'
 import SectionHeader from '@/components/SectionHeader.vue'
 import { useUserMenu } from '@/composables/useUserMenu'
-import { useUpload } from '@/composables/useUpload'
+import { useFileUploader } from '@/composables/useUpload'
 
 const message = useMessage()
 const route = useRoute()
@@ -844,7 +844,7 @@ const profileVisible = ref(false)
 const pf = reactive({ id: null, avatar: '', name: '', username: '', password: '', phone: '', gender: 1 })
 const avatarInput = ref(null)
 
-const { onFileChange } = useUpload()
+const { onFileChange } = useFileUploader()
 
 function onAvatarChange(e) {
   onFileChange(e, url => { pf.avatar = url })
@@ -954,7 +954,8 @@ onUnmounted(() => {
 .gold { background: linear-gradient(135deg, var(--gold), var(--gold-hover)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .hero-p { font-size: var(--text-lg); letter-spacing: 3px; color: rgba(255, 255, 255, 0.55); margin-bottom: 28px; font-weight: 300; }
 .hero-btns { display: flex; gap: 18px; margin-bottom: 80px; flex-wrap: wrap; }
-.btn-ghost { color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.2); background: transparent; }
+.btn-ghost { color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.2); background: transparent; transition: all 0.3s; }
+.btn-ghost:hover { color: #fff; border-color: var(--gold); background: rgba(201, 169, 110, 0.1); }
 .hero-stats { display: flex; align-items: center; gap: clamp(32px, 5vw, 72px); }
 .stat-item { text-align: center; }
 .stat-num { font-size: 40px; font-weight: 800; color: #fff; line-height: 1; display: block; }
@@ -983,7 +984,7 @@ onUnmounted(() => {
 .venue-info h3 { font-size: var(--text-xl); font-weight: 800; color: #fff; margin-bottom: 4px; }
 .venue-info p { font-size: var(--text-sm); color: rgba(255, 255, 255, 0.35); }
 .venue-connector { position: absolute; right: -18px; top: 50%; width: 10px; height: 1px; background: linear-gradient(90deg, rgba(201,169,110,0.3), transparent); z-index: 0; transform: translateY(-50%); }
-.venue-card:last-child .venue-connector { display: none; }
+/* 模板中已用 v-if="i < banners.length - 1" 阻止渲染最后一个连接线，因此无需此规则 */
 
 /* ═══════════════════════════════════════════
    COURSES — 纵深视差回廊

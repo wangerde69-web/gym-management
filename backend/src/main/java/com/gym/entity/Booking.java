@@ -16,7 +16,7 @@ public class Booking {
     private Integer memberId;
     private Integer courseId;
     private String bookingTime;
-    private Integer status;     // 0=待确认 1=已完成 2=已取消 3=未支付 4=已过期
+    private Integer status;     // 0=待确认 1=已确认 2=已取消 3=未支付 4=已过期
     private String remark;
     private LocalDateTime createTime;
     

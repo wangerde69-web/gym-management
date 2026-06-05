@@ -80,14 +80,10 @@ public class MemberController {
 
     // 获取当前登录会员的详细信息
     @GetMapping("/info")
-    public Map<String, Object> info(@RequestHeader("Authorization") String token) {
-        try {
-            token = token.substring(7);
-            Integer userId = jwtUtil.getUserId(token);
-            return auth.ok(memberService.getInfo(userId));
-        } catch (Exception e) {
-            return auth.resp(500, e.getMessage());
-        }
+    public Map<String, Object> info(@RequestHeader(value = "Authorization", required = false) String token) {
+        Integer userId = auth.extractUserId(token);
+        if (userId == null) return auth.unauthorized();
+        return auth.ok(memberService.getById(userId));
     }
 
     // 查询全部会员列表（后台管理）
