@@ -8,7 +8,7 @@ import java.util.List;
 public interface CardService extends IService<Card> {
     Card buyCard(Integer memberId, String cardTypeKey);        // 购卡
     void confirmPayment(Integer cardId, Integer memberId);     // 确认支付
-    void rejectPayment(Integer cardId, Integer memberId);      // 拒绝支付（标记未支付）
+    void cancelPurchase(Integer cardId, Integer memberId);      // 取消购卡（删除未完成记录）
     void confirmUnpaid(Integer cardId);                        // 管理员确认未支付
     void refundCard(Integer cardId, Integer memberId);         // 申请退款
     void confirmRefund(Integer cardId, Integer memberId);      // 确认退款

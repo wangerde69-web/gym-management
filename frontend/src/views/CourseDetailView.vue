@@ -85,14 +85,15 @@ onMounted(() => window.addEventListener('storage', onStorage))
 onUnmounted(() => window.removeEventListener('storage', onStorage))
 // 可选预约时间段
 const allSlots = ['08:00-09:00', '09:00-10:00', '10:00-11:00', '14:00-15:00', '15:00-16:00', '16:00-17:00', '19:00-20:00', '20:00-21:00']
-// 选今天时自动过滤已过的时间段
+// 选今天时自动过滤已过的时间段（按开始时间判断，已开始的不显示）
 const slots = computed(() => {
   const today = new Date().toISOString().split('T')[0]
   if (bd.value !== today) return allSlots
   const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
   return allSlots.filter(s => {
-    const [endH, endM] = s.split('-')[1].split(':').map(Number)
-    return now.getHours() * 60 + now.getMinutes() < endH * 60 + endM
+    const [startH, startM] = s.split('-')[0].split(':').map(Number)
+    return nowMin < startH * 60 + startM
   })
 })
 // 预约按钮启用条件：日期和时间都已选择

@@ -39,12 +39,12 @@
         ORDER BY b.create_time DESC
     </select>
 
-    <!-- 按会员 ID 查询预约记录并联表获取详情 -->
+    <!-- 按会员 ID 查询预约记录并联表获取详情（排除已退款记录） -->
     <select id="selectListByMemberIdWithDetail" resultMap="BookingDetailResultMap">
         SELECT
         <include refid="BookingDetailColumns"/>
         <include refid="BookingDetailJoins"/>
-        WHERE b.member_id = #{memberId}
+        WHERE b.member_id = #{memberId} AND b.status != 3
         ORDER BY b.create_time DESC
     </select>
 

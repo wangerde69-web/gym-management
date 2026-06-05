@@ -3,6 +3,10 @@
   <n-modal v-model:show="visible" :title="title" preset="dialog" positive-text="已完成支付" negative-text="取消" style="width: 420px" @positive-click="onConfirm" @negative-click="onCancel">
     <div style="text-align: center; padding: 16px 0">
       <img v-if="qrUrl" :src="qrUrl" style="width: 200px; max-width: 80%; border-radius: var(--radius-md); background: #fff; margin: 0 auto; display: block" />
+      <div v-else style="padding: 24px 0; color: #e57373">
+        <p style="font-size: 18px; margin-bottom: 8px">收款码未设置</p>
+        <p style="font-size: 14px; color: var(--text-muted)">请联系管理员上传收款码后再支付</p>
+      </div>
       <p style="margin-top: 16px; font-size: var(--text-base); color: var(--text-secondary)">请使用微信 / 支付宝扫码支付</p>
       <p style="margin-top: 8px; font-size: var(--text-2xl); font-weight: 800; color: var(--gold)">¥{{ price }}</p>
     </div>

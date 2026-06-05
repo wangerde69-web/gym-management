@@ -30,7 +30,7 @@
         ORDER BY c.create_time DESC
     </select>
 
-    <!-- 联表查询指定会员的会员卡记录（含卡种名称和过期时间，排除未支付和待审记录） -->
+    <!-- 联表查询指定会员的会员卡记录（含卡种名称和过期时间，仅排除未支付记录） -->
     <select id="selectMyListWithDetail" resultMap="CardDetailResultMap">
         SELECT c.*,
                ct.card_name AS card_type_name,
@@ -42,7 +42,7 @@
         FROM card c
         LEFT JOIN card_type ct ON c.card_type = ct.card_key
         WHERE c.member_id = #{memberId}
-          AND c.status NOT IN (4, 5)
+          AND c.status != 4
         ORDER BY c.create_time DESC
     </select>
 

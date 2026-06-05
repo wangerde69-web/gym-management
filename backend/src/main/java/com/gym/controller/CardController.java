@@ -50,13 +50,13 @@ public class CardController {
         return auth.resp(200, "已提交，等待管理员审核");
     }
 
-    // 会员取消支付（标记为未支付状态）
-    @PostMapping("/reject-payment/{id}")
-    public Map<String, Object> rejectPayment(@PathVariable Integer id, @RequestHeader(value = "Authorization", required = false) String token) {
+    // 会员取消购卡（删除未完成的购卡记录）
+    @PostMapping("/cancel-purchase/{id}")
+    public Map<String, Object> cancelPurchase(@PathVariable Integer id, @RequestHeader(value = "Authorization", required = false) String token) {
         Integer userId = auth.extractUserId(token);
         if (userId == null) return auth.unauthorized();
-        cardService.rejectPayment(id, userId);
-        return auth.resp(200, "支付已取消");
+        cardService.cancelPurchase(id, userId);
+        return auth.resp(200, "已取消");
     }
 
     // 管理员审批通过会员卡，激活卡并计算有效期

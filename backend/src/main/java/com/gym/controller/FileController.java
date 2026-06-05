@@ -25,34 +25,43 @@ public class FileController {
         return System.getProperty("user.dir") + "/uploads/";
     }
 
-    // 文件上传接口：校验文件、安全化文件名后保存至 uploads 目录并返回可访问的相对 URL
+    // 公共上传方法：保存文件到 uploads 目录并返回可访问的相对 URL
+    private Map<String, Object> saveFile(MultipartFile file) throws IOException {
+        if (file.isEmpty()) return auth.resp(400, "请选择文件");
+        String uploadDirPath = getUploadDir();
+        Path uploadDir = Paths.get(uploadDirPath);
+        if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
+        // 始终使用 UUID 文件名防止同名覆盖和浏览器缓存，保留原始扩展名
+        String ext = ".jpg";
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && originalName.contains(".")) {
+            ext = originalName.substring(originalName.lastIndexOf('.'));
+        }
+        String filename = UUID.randomUUID() + ext;
+        Path filePath = uploadDir.resolve(filename);
+        file.transferTo(filePath.toFile());
+        String url = "/uploads/" + filename;
+        Map<String, Object> result = auth.ok();
+        result.put("url", url);
+        result.put("msg", "上传成功");
+        return result;
+    }
+
+    // 需认证的通用文件上传接口
     @PostMapping("/upload")
     public Map<String, Object> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        if (file.isEmpty()) return auth.resp(400, "请选择文件");
         try {
-            String uploadDirPath = getUploadDir();
-            Path uploadDir = Paths.get(uploadDirPath);
-            if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
+            return saveFile(file);
+        } catch (IOException e) {
+            return auth.resp(500, "上传失败: " + e.getMessage());
+        }
+    }
 
-            // 安全化文件名：去除路径成分，仅保留字母数字和常见符号，防止路径遍历
-            String originalName = file.getOriginalFilename();
-            String filename;
-            if (originalName != null && !originalName.isBlank()) {
-                String safe = Paths.get(originalName).getFileName().toString();
-                safe = safe.replaceAll("[^a-zA-Z0-9._\\-]", "_");
-                filename = safe.isEmpty() ? UUID.randomUUID() + ".jpg" : safe;
-            } else {
-                filename = UUID.randomUUID() + ".jpg";
-            }
-            Path filePath = uploadDir.resolve(filename);
-            file.transferTo(filePath.toFile());
-
-            // 返回相对 URL，部署到不同域名/Nginx 反代后仍然有效
-            String url = "/uploads/" + filename;
-            Map<String, Object> result = auth.ok();
-            result.put("url", url);
-            result.put("msg", "上传成功");
-            return result;
+    // 无需认证的头像上传接口（注册时使用，归属 /api/front/** permitAll 路径）
+    @PostMapping("/front/upload-avatar")
+    public Map<String, Object> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
+        try {
+            return saveFile(file);
         } catch (IOException e) {
             return auth.resp(500, "上传失败: " + e.getMessage());
         }

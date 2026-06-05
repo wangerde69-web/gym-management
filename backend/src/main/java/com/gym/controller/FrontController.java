@@ -79,4 +79,14 @@ public class FrontController {
     public Map<String, Object> coachDetail(@PathVariable Integer id) {
         return auth.ok(coachService.getById(id));
     }
+
+    // 公开获取收款码 URL（支付弹窗使用，无需认证）
+    @GetMapping("/pay-qr")
+    public Map<String, Object> payQr() {
+        Map<String, String> config = gymConfigService.getConfigMap();
+        String qrUrl = config.getOrDefault("pay_qr", "");
+        Map<String, Object> data = new HashMap<>();
+        data.put("payQr", qrUrl);
+        return auth.ok(data);
+    }
 }

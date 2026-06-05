@@ -14,7 +14,7 @@
         content-style="display:flex;flex-direction:column;height:100%;background:#0e0e0e"
       >
         <div class="aside-brand">管理后台</div>
-        <n-config-provider :theme="darkTheme" :theme-overrides="sidebarTheme">
+        <n-config-provider :theme="darkTheme" :theme-overrides="sidebarTheme" class="aside-menu-wrap">
           <n-menu :options="menuOptions" :value="active" @update:value="onMenuSelect" class="menu" />
         </n-config-provider>
         <div class="aside-footer">
@@ -258,7 +258,7 @@ const filtered = computed(() => {
 const tagMap = {
   // 通用 status：用于会员，0=停用, 1=正常
   status: { 0: ['停用', 'warning'], 1: ['正常', 'success'] },
-  bookingStatus: { 0: ['待确认', 'warning'], 1: ['已确认', 'success'], 2: ['已取消', 'info'] },
+  bookingStatus: { 0: ['待确认', 'warning'], 1: ['已确认', 'success'], 2: ['已取消', 'info'], 3: ['已退款', 'error'], 4: ['已过期', 'info'] },
   cardStatus: { 0: ['待审核', 'warning'], 1: ['生效中', 'success'], 2: ['已过期', 'info'], 3: ['已退款', 'error'], 4: ['未支付', 'info'], 5: ['未支付待审', 'warning'] },
   coachStatus: { 1: ['在职', 'success'], 0: ['离职', 'error'] },
   courseStatus: { 1: ['上架', 'success'], 0: ['下架', 'info'] },
@@ -298,7 +298,7 @@ const cols = computed(() => {
     { title: '状态', key: 'status', render: row => renderTag(row, 'status', tagMap.cardStatus) },
     { title: '创建时间', key: 'createTime', render: row => fmtTime(row.createTime) },
     { title: '过期时间', key: 'endDate' },
-    { title: '操作', key: 'actions', width: 180, fixed: 'right', render: row => renderActions(row, r => [{ key: 'ok', label: '通过', fn: () => confirmAction('确认通过？', () => request.put('/card/approve/' + r.id), fCards), if: r.status === 0 }, { key: 'no', label: '拒绝', fn: () => confirmAction('确认拒绝？', () => request.delete('/card/' + r.id), fCards), if: r.status === 0 }, { key: 'del', label: '删除', fn: () => del('card', r.id) }]) }
+    { title: '操作', key: 'actions', width: 180, fixed: 'right', render: row => renderActions(row, r => [{ key: 'ok', label: '通过', fn: () => confirmAction('确认通过？', () => request.put('/card/approve/' + r.id), fCards), if: r.status === 0 || r.status === 5 }, { key: 'no', label: r.status === 5 ? '确认未支付' : '拒绝', fn: () => confirmAction(r.status === 5 ? '确认该会员未支付？' : '确认拒绝？', r.status === 5 ? () => request.put('/card/confirm-unpaid/' + r.id) : () => request.delete('/card/' + r.id), fCards), if: r.status === 0 || r.status === 5 }, { key: 'del', label: '删除', fn: () => del('card', r.id) }]) }
   ]
   if (A === 'booking') return [
     { title: 'ID', key: 'id' }, { title: '会员', key: 'memberName' }, { title: '课程', key: 'courseName' },
@@ -400,6 +400,7 @@ function doSave() {
     if (r.code === 200) {
       message.success('保存成功'); editVis.value = false
       refreshMap[active.value]?.(); fDashboard()
+      if (bc || ic) { disposeCharts(); initCharts() }
     } else message.error(r.msg || '保存失败')
   }).catch(() => message.error('请求失败，请检查网络或重新登录'))
 }
@@ -409,7 +410,7 @@ function confirmAction(content, action, refresh) {
   dialog.warning({
     title: '确认', content, positiveText: '确定', negativeText: '取消',
     onPositiveClick: () => action().then(r => {
-      if (r.code === 200) { message.success('操作成功'); refresh?.(); fDashboard() }
+      if (r.code === 200) { message.success('操作成功'); refresh?.(); fDashboard(); if (bc || ic) { disposeCharts(); initCharts() } }
       else message.error(r.msg || '操作失败')
     }).catch(() => message.error('请求失败，请检查网络'))
   })
@@ -482,9 +483,9 @@ function fetchSettings() {
   }).catch(() => message.error('加载设置失败'))
 }
 
-// 设置页面的图片上传（收款码/视频）
+// 设置页面的图片上传（收款码/视频）—— 上传成功后自动保存设置
 function suUpload(e, key) {
-  onFileChange(e, url => { st[key] = url; message.success('上传成功') })
+  onFileChange(e, url => { st[key] = url; message.success('图片已上传'); saveSettings() })
 }
 
 // 保存门店设置
@@ -577,6 +578,7 @@ onUnmounted(() => { if (nowTimer) clearInterval(nowTimer); disposeCharts() })
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: var(--aside-bg);
 }
+.aside-menu-wrap { flex: 1; overflow: auto; display: flex; flex-direction: column; }
 .menu { flex: 1; padding: 8px 0; }
 .aside-footer {
   padding: 16px;

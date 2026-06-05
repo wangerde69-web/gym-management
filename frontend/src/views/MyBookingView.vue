@@ -4,7 +4,8 @@
       <div class="top-nav-inner">
         <router-link to="/" class="brand">GYMCORE</router-link>
         <div class="nav-right">
-          <router-link to="/login"><n-button type="primary" size="medium">会员登录</n-button></router-link>
+          <UserMenu v-if="logged" @command="onMenu" />
+          <router-link v-else to="/login"><n-button type="primary" size="medium">会员登录</n-button></router-link>
         </div>
       </div>
     </header>
@@ -40,15 +41,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NTag, useMessage, useDialog } from 'naive-ui'
 import request from '@/api'
+import UserMenu from '@/components/UserMenu.vue'
+import { useUserMenu } from '@/composables/useUserMenu'
 
 // 预约列表状态和消息/对话框初始化
 const router = useRouter(), bs = ref([])
 const message = useMessage()
 const dialog = useDialog()
+const { onMenu } = useUserMenu()
+// 登录状态（使用 ref + 监听 storage 事件以保持响应式）
+const logged = ref(!!localStorage.getItem('token'))
+function onStorage() { logged.value = !!localStorage.getItem('token') }
+onMounted(() => window.addEventListener('storage', onStorage))
+onUnmounted(() => window.removeEventListener('storage', onStorage))
 // 加载是否已完成，用于区分"暂无记录"和"加载失败"
 const loaded = ref(false)
 

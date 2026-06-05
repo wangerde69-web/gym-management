@@ -62,6 +62,7 @@ public class SecurityConfig {
                 ).permitAll()
                 // 前台公开查询
                 .requestMatchers("/api/front/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()  // 上传文件静态访问（img 标签不带 token）
                 .requestMatchers(HttpMethod.GET, "/api/coach/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/course/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/banner/**").permitAll()
@@ -77,14 +78,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/card/approve/**", "/api/card/unpaid/**").hasRole("admin")
                 .requestMatchers("/api/booking/approve/**", "/api/booking/list", "/api/booking/all").hasRole("admin")
                 .requestMatchers("/api/config/save").hasRole("admin")
-                .requestMatchers("/api/upload/**").hasRole("admin")
+                .requestMatchers("/api/upload/**").authenticated()
                 .requestMatchers("/api/stat/**").hasRole("admin")
                 // 3. 需认证的接口（通用会员/已登录）
                 .requestMatchers("/api/member/info").authenticated()
                 .requestMatchers("/api/card/buy").authenticated()
                 .requestMatchers("/api/card/refund/**").authenticated()
                 .requestMatchers("/api/card/confirm-payment/**").authenticated()
-                .requestMatchers("/api/card/reject-payment/**").authenticated()
+                .requestMatchers("/api/card/cancel-purchase/**").authenticated()
                 .requestMatchers("/api/card/my").authenticated()
                 .requestMatchers("/api/booking/add", "/api/booking/update", "/api/booking/my").authenticated()
                 .requestMatchers("/api/booking/confirm/**", "/api/booking/cancel/**").authenticated()

@@ -2,10 +2,8 @@ package com.gym.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.gym.entity.Card;
 import com.gym.entity.Member;
 import com.gym.mapper.MemberMapper;
-import com.gym.service.CardService;
 import com.gym.service.MemberService;
 import com.gym.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +23,6 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
 
     @Autowired
     private ResetIdUtil resetIdUtil;
-
-    @Autowired
-    private CardService cardService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -55,11 +50,10 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         return result;
     }
 
-    // 删除会员并级联清理关联的卡片记录，最后重置自增 ID
+    // 删除会员并重置自增 ID（不级联删除关联的卡和预约记录）
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAndResetId(Integer id) {
-        cardService.remove(new QueryWrapper<Card>().eq("member_id", id));
         resetIdUtil.deleteAndReset(id, "member");
     }
 }

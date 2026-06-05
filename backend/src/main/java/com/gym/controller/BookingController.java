@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,9 @@ public class BookingController {
             try {
                 String endTimeStr = bookingTime.split("-")[1].trim();
                 LocalTime endTime = LocalTime.parse(endTimeStr);
-                if (LocalTime.now().isAfter(endTime)) return auth.resp(400, "该时间段已过，请选择其他时间");
+                LocalDate date = (bookingDate != null && !bookingDate.isEmpty()) ? LocalDate.parse(bookingDate) : LocalDate.now();
+                LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+                if (LocalDateTime.now().isAfter(endDateTime)) return auth.resp(400, "该时间段已过，请选择其他时间");
             } catch (Exception ignored) {}
         }
         Booking booking = new Booking();
@@ -120,10 +124,17 @@ public class BookingController {
         return auth.ok();
     }
 
-    // 会员确认退款（当前预约不涉及支付流程，复用取消逻辑将预约置为已取消状态）
+    // 会员确认退款：校验权限和状态后标记为已退款（保留记录供后台查看）
     @PostMapping("/confirm-refund/{id}")
     public Map<String, Object> confirmRefund(@PathVariable Integer id, @RequestHeader(value = "Authorization", required = false) String token) {
-        return cancel(id, token);
+        Integer userId = auth.extractUserId(token);
+        if (userId == null) return auth.unauthorized();
+        Booking existing = bookingService.getById(id);
+        if (existing == null || !existing.getMemberId().equals(userId)) return auth.forbidden();
+        if (existing.getStatus() != 2) return auth.resp(400, "当前状态不允许退款");
+        existing.setStatus(3); // 3=已退款
+        bookingService.updateById(existing);
+        return auth.ok();
     }
 
     // 删除预约记录并重置自增 ID

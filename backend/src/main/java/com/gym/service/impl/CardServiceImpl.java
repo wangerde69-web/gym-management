@@ -62,9 +62,9 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
         this.updateById(card);
     }
 
-    // 会员取消支付，将卡片标记为未支付状态
+    // 会员取消购卡：删除未完成的购卡记录并重置自增 ID
     @Override
-    public void rejectPayment(Integer cardId, Integer memberId) {
+    public void cancelPurchase(Integer cardId, Integer memberId) {
         Card card = this.getById(cardId);
         if (card == null || !card.getMemberId().equals(memberId)) {
             throw new RuntimeException("无权操作");
@@ -72,8 +72,7 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
         if (card.getStatus() != 0) {
             throw new RuntimeException("状态异常");
         }
-        card.setStatus(4); // 4=未支付，保留记录作为证据
-        this.updateById(card);
+        resetIdUtil.deleteAndReset(cardId, "card");
     }
 
     // 管理员确认会员卡未支付状态
@@ -108,7 +107,7 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
         this.updateById(card);
     }
 
-    // 会员确认退款完成：校验权限和状态后删除卡片记录
+    // 会员确认退款完成：校验权限和状态后删除卡片记录并重置自增 ID
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void confirmRefund(Integer cardId, Integer memberId) {
@@ -116,7 +115,7 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
         if (card == null || !card.getMemberId().equals(memberId) || card.getStatus() != 3) {
             throw new RuntimeException("无权操作或状态异常");
         }
-        this.removeById(cardId);
+        resetIdUtil.deleteAndReset(cardId, "card");
     }
 
     @Override

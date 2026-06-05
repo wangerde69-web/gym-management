@@ -28,7 +28,7 @@
           </div>
           <div class="card-row-actions">
             <n-tag :type="['warning', 'success', 'info', 'error', 'info', 'warning'][c.status] || 'info'" size="medium">
-              {{ ['已支付待审', '生效中', '已过期', '已退款', '未支付', '未支付待审'][c.status] || '未知' }}
+              {{ ['待审核', '生效中', '已过期', '已退款', '未支付', '已支付待审'][c.status] || '未知' }}
             </n-tag>
             <n-button v-if="c.status === 1" type="error" size="medium" secondary @click="refundCard(c.id)">申请退款</n-button>
             <n-button v-if="c.status === 3" type="primary" size="medium" secondary @click="cfmRefund(c.id)">确认退款</n-button>
@@ -88,7 +88,14 @@ const sp = computed(() => { const ct = cts.value.find(c => c.cardKey === sel.val
 
 // 加载我的已有会员卡列表
 function fMc() {
-  request.get('/card/my').then(r => { if (r.code === 200) mc.value = r.data || [] }).catch(() => message.error('加载失败'))
+  request.get('/card/my').then(r => {
+    if (r.code === 200) {
+      // 清理中断购卡产生的孤儿记录（status 0 = 未支付未完成）
+      const orphans = (r.data || []).filter(c => c.status === 0)
+      orphans.forEach(c => request.post('/card/cancel-purchase/' + c.id).catch(() => {}))
+      mc.value = orphans.length ? (r.data || []).filter(c => c.status !== 0) : (r.data || [])
+    }
+  }).catch(() => message.error('加载失败'))
 }
 
 // 加载可购买的卡种列表
@@ -120,9 +127,9 @@ function confirmPay() {
   }).catch(() => message.error('请求失败'))
 }
 
-// 取消支付：通知后端放弃该笔支付
+// 取消支付：删除未完成的购卡记录
 function rejectPay() {
-  if (pid.value) request.post('/card/reject-payment/' + pid.value).catch(() => message.error('请求失败'))
+  if (pid.value) request.post('/card/cancel-purchase/' + pid.value).catch(() => message.error('请求失败'))
   sel.value = ''; pid.value = null
 }
 

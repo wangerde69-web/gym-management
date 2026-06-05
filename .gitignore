@@ -25,6 +25,6 @@ __pycache__/
 Thumbs.db
 
 # Uploads (large files)
-# backend/uploads/
+backend/uploads/
 
 # YOLO model files - tracked as they're < 100MB and needed for pose analysis

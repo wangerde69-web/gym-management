@@ -20,10 +20,11 @@ export function useUpload() {
     const rd = new FileReader()
     rd.onload = ev => { preview.value = ev.target.result }
     rd.readAsDataURL(f)
-    // 上传到服务器
+    // 上传到服务器（未登录时走免认证的头像上传路径）
     const fd = new FormData()
     fd.append('file', f)
-    request.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
+    const uploadPath = localStorage.getItem('token') ? '/upload' : '/front/upload-avatar'
+    request.post(uploadPath, fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
       if (res.code === 200) {
         url.value = res.url
         if (onSuccess) onSuccess(res.url)
@@ -46,7 +47,8 @@ export function useFileUploader() {
     if (!f) return
     const fd = new FormData()
     fd.append('file', f)
-    request.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
+    const uploadPath = localStorage.getItem('token') ? '/upload' : '/front/upload-avatar'
+    request.post(uploadPath, fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
       if (res.code === 200) {
         if (onSuccess) onSuccess(res.url)
       } else {

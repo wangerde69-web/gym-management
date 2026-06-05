@@ -42,7 +42,7 @@ public class StatController {
         data.put("cardMemberCount", cardMemberCount);
         data.put("courseCount", courseService.count());
         data.put("coachCount", coachService.count());
-        data.put("bookingCount", bookingService.count());
+        data.put("bookingCount", bookingService.lambdaQuery().notIn(Booking::getStatus, 2, 3, 4).count());
         data.put("equipmentCount", equipmentService.count());
         data.put("confirmedBooking", bookingService.lambdaQuery().eq(Booking::getStatus, 1).count());
         return auth.ok(data);
@@ -53,9 +53,11 @@ public class StatController {
     public Map<String, Object> courseBooking() {
         List<Map<String, Object>> data = new ArrayList<>();
         List<Course> courses = courseService.list();
-        // 一次查询获取各课程的预约数
+        // 一次查询获取各课程的有效预约数（排除已取消和已过期的预约）
         Map<Integer, Long> countMap = bookingService.listMaps(
-                new QueryWrapper<Booking>().select("course_id", "COUNT(*) AS cnt").groupBy("course_id")
+                new QueryWrapper<Booking>().select("course_id", "COUNT(*) AS cnt")
+                        .notIn("status", 2, 3, 4)
+                        .groupBy("course_id")
         ).stream().collect(Collectors.toMap(
                 m -> ((Number) m.get("course_id")).intValue(),
                 m -> ((Number) m.get("cnt")).longValue(),
