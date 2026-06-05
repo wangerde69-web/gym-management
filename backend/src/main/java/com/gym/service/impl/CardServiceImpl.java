@@ -9,6 +9,7 @@ import com.gym.service.CardTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -108,6 +109,7 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
     }
 
     // 会员确认退款完成：校验权限和状态后删除卡片记录
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void confirmRefund(Integer cardId, Integer memberId) {
         Card card = this.getById(cardId);
@@ -126,5 +128,11 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
     @Override
     public List<Card> selectListWithDetail() {
         return baseMapper.selectListWithDetail();
+    }
+
+    // 联表查询指定会员的会员卡记录（含卡种名称和过期时间）
+    @Override
+    public List<Card> selectMyListWithDetail(Integer memberId) {
+        return baseMapper.selectMyListWithDetail(memberId);
     }
 }

@@ -11,12 +11,14 @@
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="member_name" property="memberName"/>
+        <result column="card_type_name" property="cardTypeName"/>
         <result column="end_date" property="endDate"/>
     </resultMap>
 
     <select id="selectListWithDetail" resultMap="CardDetailResultMap">
         SELECT c.*,
                m.name AS member_name,
+               ct.card_name AS card_type_name,
                CASE ct.validity_unit
                    WHEN 'MONTH' THEN DATE(c.create_time) + INTERVAL ct.validity_days MONTH
                    WHEN 'YEAR'  THEN DATE(c.create_time) + INTERVAL ct.validity_days YEAR
@@ -25,6 +27,22 @@
         FROM card c
         LEFT JOIN member m ON c.member_id = m.id
         LEFT JOIN card_type ct ON c.card_type = ct.card_key
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 联表查询指定会员的会员卡记录（含卡种名称和过期时间，排除未支付和待审记录） -->
+    <select id="selectMyListWithDetail" resultMap="CardDetailResultMap">
+        SELECT c.*,
+               ct.card_name AS card_type_name,
+               CASE ct.validity_unit
+                   WHEN 'MONTH' THEN DATE(c.create_time) + INTERVAL ct.validity_days MONTH
+                   WHEN 'YEAR'  THEN DATE(c.create_time) + INTERVAL ct.validity_days YEAR
+                   ELSE DATE(c.create_time) + INTERVAL ct.validity_days DAY
+               END AS end_date
+        FROM card c
+        LEFT JOIN card_type ct ON c.card_type = ct.card_key
+        WHERE c.member_id = #{memberId}
+          AND c.status NOT IN (4, 5)
         ORDER BY c.create_time DESC
     </select>
 

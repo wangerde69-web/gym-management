@@ -21,4 +21,7 @@ public interface CardMapper extends BaseMapper<Card> {
 
     // 联表查询所有会员卡记录（关联会员表获取会员姓名）
     List<Card> selectListWithDetail();
+
+    // 联表查询指定会员的会员卡记录（含卡种名称和过期时间）
+    List<Card> selectMyListWithDetail(Integer memberId);
 }

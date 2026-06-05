@@ -82,8 +82,8 @@ function handleLogin() {
   request.post('/member/login', l).then(res => {
     loading.value = false
     if (res.code === 200) {
-      localStorage.setItem('token', res.token); localStorage.setItem('memberId', res.memberId)
-      localStorage.setItem('username', res.username); localStorage.setItem('name', res.name || res.username)
+      localStorage.setItem('token', res.token); localStorage.setItem('username', res.username)
+      localStorage.setItem('name', res.name || res.username)
       localStorage.setItem('avatar', res.imageUrl || ''); localStorage.setItem('role', res.role)
       message.success('登录成功'); router.push(route.query.redirect || '/')
     } else message.error(res.msg || '登录失败')

@@ -100,7 +100,7 @@ public class StatController {
             }
             return auth.ok(Map.of("months", months, "income", incomeList));
         } catch (Exception e) {
-            return auth.resp(500, e.getClass().getName() + ": " + e.getMessage());
+            return auth.resp(500, "统计查询失败: " + e.getMessage());
         }
     }
 }

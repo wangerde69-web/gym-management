@@ -120,7 +120,7 @@ public class BookingController {
         return auth.ok();
     }
 
-    // 会员确认退款（复用取消逻辑，状态置为已取消）
+    // 会员确认退款（当前预约不涉及支付流程，复用取消逻辑将预约置为已取消状态）
     @PostMapping("/confirm-refund/{id}")
     public Map<String, Object> confirmRefund(@PathVariable Integer id, @RequestHeader(value = "Authorization", required = false) String token) {
         return cancel(id, token);

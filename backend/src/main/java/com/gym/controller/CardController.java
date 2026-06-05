@@ -1,6 +1,5 @@
 package com.gym.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gym.config.AuthHelper;
 import com.gym.entity.Card;
 import com.gym.entity.CardTypeEntity;
@@ -13,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -73,13 +73,11 @@ public class CardController {
         return auth.resp(200, "已确认未支付");
     }
 
-    // 查询当前会员的会员卡列表（排除已取消和未支付已删除的记录）
+    // 查询当前会员的会员卡列表（联表查询，含卡种名称和过期时间）
     @GetMapping("/my")
     public Map<String, Object> myList(@RequestHeader("Authorization") String token) {
         Integer userId = auth.extractUserId(token);
-        QueryWrapper<Card> wrapper = new QueryWrapper<>();
-        wrapper.eq("member_id", userId).notIn("status", 4, 5).orderByDesc("create_time");
-        return auth.ok(cardService.list(wrapper));
+        return auth.ok(cardService.selectMyListWithDetail(userId));
     }
 
     // 会员申请退款
@@ -145,7 +143,8 @@ public class CardController {
                 String endDate = c.getEndDate() != null ? c.getEndDate().toString() : "";
                 String createTime = c.getCreateTime() != null ? c.getCreateTime().toString() : "";
                 writer.write(String.format("%d,%d,%s,%.2f,%s,%s,%s\n",
-                        c.getId(), c.getMemberId(), escapeCsv(cardName), c.getPrice(), escapeCsv(status),
+                        c.getId(), c.getMemberId(), escapeCsv(cardName),
+                        c.getPrice() != null ? c.getPrice() : BigDecimal.ZERO, escapeCsv(status),
                         escapeCsv(endDate), escapeCsv(createTime)));
             }
             writer.flush();

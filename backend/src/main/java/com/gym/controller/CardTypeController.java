@@ -7,11 +7,14 @@ import com.gym.service.CardTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.Set;
 
 /* 卡种管理控制器，使用 MyBatis-Plus ORM 替代 JdbcTemplate 原生 SQL */
 @RestController
 @RequestMapping("/api/cardtype")
 public class CardTypeController {
+
+    private static final Set<String> VALID_UNITS = Set.of("DAY", "MONTH", "YEAR");
 
     @Autowired
     private CardTypeService cardTypeService;
@@ -41,6 +44,9 @@ public class CardTypeController {
     @PostMapping("/add")
     public Map<String, Object> add(@RequestBody CardTypeEntity cardType) {
         try {
+            if (cardType.getValidityUnit() != null && !VALID_UNITS.contains(cardType.getValidityUnit())) {
+                return auth.resp(400, "有效期单位仅支持: DAY(天), MONTH(月), YEAR(年)");
+            }
             cardTypeService.save(cardType);
             return auth.resp(200, "添加成功");
         } catch (Exception e) {
@@ -52,6 +58,9 @@ public class CardTypeController {
     @PutMapping("/update")
     public Map<String, Object> update(@RequestBody CardTypeEntity cardType) {
         try {
+            if (cardType.getValidityUnit() != null && !VALID_UNITS.contains(cardType.getValidityUnit())) {
+                return auth.resp(400, "有效期单位仅支持: DAY(天), MONTH(月), YEAR(年)");
+            }
             cardTypeService.updateById(cardType);
             return auth.resp(200, "更新成功");
         } catch (Exception e) {

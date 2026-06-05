@@ -43,18 +43,15 @@ CREATE TABLE `banner` (
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '标题',
   `subtitle` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '副标题',
   `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '图片地址',
-  `video_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '视频地址',
-  `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'image' COMMENT '类型 image/video',
-  `link_url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '跳转链接',
   `sort` int DEFAULT 0 COMMENT '排序',
   `status` int DEFAULT 1 COMMENT '状态 0禁用 1启用',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
-INSERT INTO `banner` VALUES (1, '专业健身空间', '科学训练体系 · 顶级教练团队', '/images/gym7.jpg', NULL, 'image', '', 1, 1, NOW());
-INSERT INTO `banner` VALUES (2, '精品团体课程', '瑜伽 · 搏击 · 动感单车 · 普拉提', '/images/fitness1.jpg', NULL, 'image', '', 2, 1, NOW());
-INSERT INTO `banner` VALUES (3, '明星教练团队', '国家认证 · 一对一科学指导', '/images/gym1.jpg', NULL, 'image', '', 3, 1, NOW());
+INSERT INTO `banner` VALUES (1, '专业健身空间', '科学训练体系 · 顶级教练团队', '/images/gym7.jpg', 1, 1, NOW());
+INSERT INTO `banner` VALUES (2, '精品团体课程', '瑜伽 · 搏击 · 动感单车 · 普拉提', '/images/fitness1.jpg', 2, 1, NOW());
+INSERT INTO `banner` VALUES (3, '明星教练团队', '国家认证 · 一对一科学指导', '/images/gym1.jpg', 3, 1, NOW());
 
 -- ----------------------------
 -- Table structure for booking
@@ -65,10 +62,12 @@ CREATE TABLE `booking` (
   `member_id` int NOT NULL COMMENT '会员ID',
   `course_id` int NOT NULL COMMENT '课程ID',
   `booking_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '预约时间',
-  `status` int DEFAULT 0 COMMENT '状态 0待确认 1已确认 2已取消',
+  `status` int DEFAULT 0 COMMENT '状态 0待确认 1已确认 2已取消 3未支付 4已过期',
   `remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '备注',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_member_id` (`member_id` ASC) USING BTREE,
+  INDEX `idx_course_id` (`course_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -80,11 +79,10 @@ CREATE TABLE `card` (
   `member_id` int NOT NULL COMMENT '会员ID',
   `card_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '卡类型 WEEKLY/MONTHLY/YEARLY/COUNT',
   `price` decimal(10, 2) DEFAULT 0.00 COMMENT '价格',
-  `total_times` int DEFAULT NULL COMMENT '总次数',
-  `remain_times` int DEFAULT NULL COMMENT '剩余次数',
-  `status` int DEFAULT 0 COMMENT '状态 0待审核 1生效中 2已过期 3已退款 4未支付 5未支付待审',
+  `status` int DEFAULT 0 COMMENT '状态 0待审核 1生效中 2已过期 3已退款 4未支付 5已确认支付待审',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_member_id` (`member_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------

@@ -15,10 +15,20 @@ request.interceptors.request.use(config => {
   return config
 })
 
-// 响应拦截器：统一提取响应数据，透传错误
+// 响应拦截器：统一提取响应数据，处理 401 未授权跳转
 request.interceptors.response.use(
   res => res.data,
-  err => Promise.reject(err)
+  err => {
+    // 401 未授权：清除 token 并跳转到对应登录页
+    if (err.response && err.response.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('role')
+      const isAdmin = window.location.pathname.startsWith('/admin')
+      window.location.href = isAdmin ? '/admin-login' : '/login'
+      return Promise.reject(err)
+    }
+    return Promise.reject(err)
+  }
 )
 
 export default request

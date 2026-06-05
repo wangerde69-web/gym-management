@@ -16,10 +16,16 @@ public interface BookingMapper extends BaseMapper<Booking> {
     List<Booking> selectListByMemberIdWithDetail(Integer memberId);
     // 分页联表查询预约记录
     Page<Booking> selectPageWithDetail(Page<Booking> page);
-    // 批量将已过时间段的待确认/已确认预约标记为已过期（仅处理今天及之前的预约）
-    @Update("UPDATE booking SET status = 4 WHERE status IN (0, 1) AND " +
-            "DATE(create_time) <= CURDATE() AND " +
-            "(DATE(create_time) < CURDATE() OR " +
-            "STR_TO_DATE(SUBSTRING_INDEX(booking_time, '-', -1), '%H:%i') <= CURTIME())")
+    // 批量将已过时间段的待确认/已确认预约标记为已过期
+    // 新格式 booking_time="2026-06-10 14:00-15:00"（含日期前缀），旧格式="14:00-15:00"（用 create_time 兜底）
+    @Update("UPDATE booking SET status = 4 WHERE status IN (0, 1) AND ("
+            + "(booking_time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}' "
+            + " AND STR_TO_DATE(CONCAT(SUBSTRING(booking_time, 1, 10), ' ', "
+            + "   SUBSTRING_INDEX(booking_time, '-', -1)), '%Y-%m-%d %H:%i') < NOW())"
+            + " OR "
+            + "(booking_time NOT REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}' "
+            + " AND DATE(create_time) <= CURDATE()"
+            + " AND (DATE(create_time) < CURDATE() OR "
+            + "   STR_TO_DATE(SUBSTRING_INDEX(booking_time, '-', -1), '%H:%i') <= CURTIME())))")
     void updateExpiredBookings();
 }

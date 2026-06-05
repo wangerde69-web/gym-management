@@ -33,7 +33,7 @@
       <div v-else class="empty-state">
         <p>{{ loaded ? '暂无预约记录' : '正在加载...' }}</p>
         <n-button v-if="loaded" type="primary" size="large" @click="$router.push('/')">去预约课程</n-button>
-        <n-button v-else type="primary" size="large" @click="fetch">重新加载</n-button>
+        <n-button v-else type="primary" size="large" @click="loadBookings">重新加载</n-button>
       </div>
     </div>
   </div>
@@ -53,7 +53,7 @@ const dialog = useDialog()
 const loaded = ref(false)
 
 // 加载当前用户的预约列表
-function fetch() {
+function loadBookings() {
   request.get('/booking/my').then(r => {
     loaded.value = true
     if (r.code === 200) bs.value = r.data || []
@@ -70,8 +70,8 @@ function cancel(id) {
     negativeText: '返回',
     onPositiveClick: () => {
       request.put('/booking/cancel/' + id).then(r => {
-        if (r.code === 200) { message.success('已取消'); fetch() }
-      })
+        if (r.code === 200) { message.success('已取消'); loadBookings() }
+      }).catch(() => message.error('请求失败'))
     }
   })
 }
@@ -86,12 +86,12 @@ function refund(id) {
     onPositiveClick: () => {
       request.post('/booking/confirm-refund/' + id).then(r => {
         if (r.code === 200) { message.success('退款已完成'); bs.value = bs.value.filter(b => b.id !== id) }
-      })
+      }).catch(() => message.error('请求失败'))
     }
   })
 }
 
-onMounted(fetch)
+onMounted(loadBookings)
 </script>
 
 <style scoped>

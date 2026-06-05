@@ -5,6 +5,7 @@ import com.gym.config.AuthHelper;
 import com.gym.entity.Banner;
 import com.gym.service.BannerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -36,6 +37,7 @@ public class BannerController {
     }
 
     // 批量保存轮播图：先清空再按传入顺序重新插入
+    @Transactional(rollbackFor = Exception.class)
     @PostMapping("/saveBatch")
     public Map<String, Object> saveBatch(@RequestBody List<Banner> banners) {
         bannerService.remove(new QueryWrapper<>());

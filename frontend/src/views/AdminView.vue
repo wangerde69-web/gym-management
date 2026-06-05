@@ -210,7 +210,7 @@ const members = ref([]), courses = ref([]), coaches = ref([]), cardTypes = ref([
 const equipments = ref([]), banners = ref([]), bookings = ref([]), cards = ref([])
 
 // 通用数据拉取函数和各模块数据加载器
-function dFetch(api, target) { request.get(api).then(r => { if (r.code === 200) target.value = r.data || [] }) }
+function dFetch(api, target) { request.get(api).then(r => { if (r.code === 200) target.value = r.data || [] }).catch(() => message.error('数据加载失败')) }
 const fMembers = () => dFetch('/member/all', members)
 const fCourses = () => dFetch('/course/all', courses)
 const fCoaches = () => dFetch('/coach/all', coaches)
@@ -231,7 +231,7 @@ const fDashboard = () => request.get('/stat/dashboard').then(r => {
       { title: '器材数量', value: d.equipmentCount || 0, icon: '🔧' }
     ]
   }
-})
+}).catch(() => message.error('加载仪表盘数据失败'))
 
 // 根据当前菜单项计算：是否显示表格、是否支持搜索/新增/导出
 const isTab = computed(() => !['dashboard', 'settings'].includes(active.value))
@@ -410,7 +410,8 @@ function confirmAction(content, action, refresh) {
     title: '确认', content, positiveText: '确定', negativeText: '取消',
     onPositiveClick: () => action().then(r => {
       if (r.code === 200) { message.success('操作成功'); refresh?.(); fDashboard() }
-    })
+      else message.error(r.msg || '操作失败')
+    }).catch(() => message.error('请求失败，请检查网络'))
   })
 }
 
@@ -452,14 +453,14 @@ function initCharts() {
         bc = echarts.init(bChart.value)
         bc.setOption({ tooltip: { trigger: 'axis' }, grid: { left: 20, right: 20, bottom: 20, top: 20, containLabel: true }, xAxis: { type: 'category', data: d.map(v => v.courseName) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: d.map(v => v.count), itemStyle: { color: '#c9a96e' } }] })
       }
-    })
+    }).catch(() => message.error('加载图表数据失败'))
     request.get('/stat/income').then(r => {
       if (r.code === 200 && iChart.value) {
         const d = r.data || {}
         ic = echarts.init(iChart.value)
         ic.setOption({ tooltip: { trigger: 'axis' }, grid: { left: 20, right: 20, bottom: 20, top: 20, containLabel: true }, xAxis: { type: 'category', data: d.months || [] }, yAxis: { type: 'value' }, series: [{ type: 'line', smooth: true, data: d.income || [], itemStyle: { color: '#c9a96e' }, areaStyle: { color: 'rgba(201,169,110,0.1)' } }] })
       }
-    })
+    }).catch(() => message.error('加载图表数据失败'))
   })
 }
 
@@ -478,7 +479,7 @@ function fetchSettings() {
       Object.keys(st).forEach(k => st[k] = r.data[k] || '')
       try { const a = JSON.parse(r.data.store_address || '[]'); addrs.value = Array.isArray(a) ? a : [] } catch { addrs.value = [] }
     }
-  })
+  }).catch(() => message.error('加载设置失败'))
 }
 
 // 设置页面的图片上传（收款码/视频）
@@ -487,7 +488,7 @@ function suUpload(e, key) {
 }
 
 // 保存门店设置
-function saveSettings() { request.put('/config/save', { ...st }).then(r => { if (r.code === 200) message.success('保存成功') }) }
+function saveSettings() { request.put('/config/save', { ...st }).then(r => { if (r.code === 200) message.success('保存成功') }).catch(() => message.error('保存失败')) }
 
 // 地址对话框图片上传
 function onAu(e) {
@@ -521,13 +522,13 @@ const addrCols = [
 
 // 初始化
 // 退出管理后台
-function logout() { localStorage.clear(); router.push('/admin-login') }
+function logout() { ['token', 'username', 'name', 'avatar', 'role'].forEach(k => localStorage.removeItem(k)); router.push('/admin-login') }
 
 // 页面挂载：启动时钟、加载管理员信息、拉取全部数据并初始化图表
 onMounted(() => {
   now.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   nowTimer = setInterval(() => { now.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }, 30000)
-  request.get('/admin/info').then(r => { if (r.code === 200) { admin.nickname = r.data.nickname || r.data.username || '管理员' } }).catch(() => {})
+  request.get('/admin/info').then(r => { if (r.code === 200) { admin.nickname = r.data.nickname || r.data.username || '管理员' } }).catch(() => message.error('管理员信息加载失败'))
   fDashboard(); fMembers(); fCourses(); fCoaches(); fBookings(); fEquipments(); fCardTypes(); fCards(); fetchSettings(); fBanners(); initCharts()
 })
 
@@ -711,10 +712,6 @@ onUnmounted(() => { if (nowTimer) clearInterval(nowTimer); disposeCharts() })
 }
 
 /* ====== 字段 ====== */
-.field-label {
-  font-size: 14px; font-weight: 600; color: var(--text-secondary);
-  display: block; margin-bottom: 8px;
-}
 .s-img {
   width: 80px; height: 80px; border-radius: 50%;
   border: 2px dashed #d4d4d8;

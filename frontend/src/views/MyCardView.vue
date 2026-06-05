@@ -22,8 +22,7 @@
           <div class="card-row-info">
             <h3>{{ c.cardTypeName }}</h3>
             <div class="card-meta">
-              <span v-if="c.status === 1">📅 过期时间: {{ c.endDate }}</span>
-              <span v-if="c.totalTimes > 0">🏋️ 剩余 {{ c.remainTimes }} 次</span>
+              <span v-if="c.status === 1">📅 过期时间: {{ c.endDate || '—' }}</span>
             </div>
             <b>¥{{ c.price }}</b>
           </div>
@@ -61,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { NButton, NTag, useMessage, useDialog } from 'naive-ui'
 import request from '@/api'
 import UserMenu from '@/components/UserMenu.vue'
@@ -77,7 +76,9 @@ const dialog = useDialog()
 // 登录状态、我的卡列表、可选卡种、选中卡种、加载状态
 // 使用 ref + 监听 storage 事件以保持响应式（避免 computed 读取 localStorage 不响应的问题）
 const logged = ref(!!localStorage.getItem('token'))
-window.addEventListener('storage', () => { logged.value = !!localStorage.getItem('token') })
+function onStorage() { logged.value = !!localStorage.getItem('token') }
+onMounted(() => window.addEventListener('storage', onStorage))
+onUnmounted(() => window.removeEventListener('storage', onStorage))
 const mc = ref([]), cts = ref([]), sel = ref(''), ld = ref(false)
 const payRef = ref(null), pid = ref(null)
 // 根据选中卡种计算支付价格
@@ -87,12 +88,12 @@ const sp = computed(() => { const ct = cts.value.find(c => c.cardKey === sel.val
 
 // 加载我的已有会员卡列表
 function fMc() {
-  request.get('/card/my').then(r => { if (r.code === 200) mc.value = r.data || [] })
+  request.get('/card/my').then(r => { if (r.code === 200) mc.value = r.data || [] }).catch(() => message.error('加载失败'))
 }
 
 // 加载可购买的卡种列表
 function fCt() {
-  request.get('/cardtype/all').then(r => { if (r.code === 200) cts.value = r.data || [] })
+  request.get('/cardtype/all').then(r => { if (r.code === 200) cts.value = r.data || [] }).catch(() => message.error('加载失败'))
 }
 
 /* 会员卡购买流程：创建购卡订单 → 打开支付弹窗 → 确认或取消支付 */
@@ -116,12 +117,12 @@ function confirmPay() {
   if (!pid.value) return
   request.post('/card/confirm-payment/' + pid.value).then(r => {
     if (r.code === 200) { message.success('已提交'); sel.value = ''; pid.value = null; fMc() }
-  })
+  }).catch(() => message.error('请求失败'))
 }
 
 // 取消支付：通知后端放弃该笔支付
 function rejectPay() {
-  if (pid.value) request.post('/card/reject-payment/' + pid.value).catch(() => {})
+  if (pid.value) request.post('/card/reject-payment/' + pid.value).catch(() => message.error('请求失败'))
   sel.value = ''; pid.value = null
 }
 
@@ -133,7 +134,7 @@ function refundCard(id) {
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: () => {
-      request.post('/card/refund/' + id).then(r => { if (r.code === 200) { message.success('已提交'); fMc() } })
+      request.post('/card/refund/' + id).then(r => { if (r.code === 200) { message.success('已提交'); fMc() } }).catch(() => message.error('请求失败'))
     }
   })
 }
@@ -148,7 +149,7 @@ function cfmRefund(id) {
     onPositiveClick: () => {
       request.post('/card/confirm-refund/' + id).then(r => {
         if (r.code === 200) { message.success('已完成'); mc.value = mc.value.filter(c => c.id !== id) }
-      })
+      }).catch(() => message.error('请求失败'))
     }
   })
 }

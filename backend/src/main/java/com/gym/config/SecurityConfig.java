@@ -36,6 +36,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // 使用明确来源而不是 "*"，可与 allowCredentials(true) 配合使用
+        // TODO: 生产环境应将来源列表抽取到 application.yml，通过 @Value 注入，支持域名配置
         config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:8080"));
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
@@ -66,27 +67,31 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/banner/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipment/**").permitAll()
                 .requestMatchers("/api/cardtype/list", "/api/cardtype/all", "/api/cardtype/{id}").permitAll()
-                // 2. 需要认证的接口
-                .requestMatchers("/api/admin/**").authenticated()
+                // 2. 需认证的接口（admin 角色）
+                .requestMatchers("/api/admin/**").hasRole("admin")
+                .requestMatchers("/api/coach/add", "/api/coach/update", "/api/coach/delete").hasRole("admin")
+                .requestMatchers("/api/course/add", "/api/course/update", "/api/course/delete").hasRole("admin")
+                .requestMatchers("/api/banner/add", "/api/banner/update", "/api/banner/delete").hasRole("admin")
+                .requestMatchers("/api/equipment/add", "/api/equipment/update", "/api/equipment/delete").hasRole("admin")
+                .requestMatchers("/api/cardtype/add", "/api/cardtype/update", "/api/cardtype/delete").hasRole("admin")
+                .requestMatchers("/api/card/approve/**", "/api/card/unpaid/**").hasRole("admin")
+                .requestMatchers("/api/booking/approve/**", "/api/booking/list", "/api/booking/all").hasRole("admin")
+                .requestMatchers("/api/config/save").hasRole("admin")
+                .requestMatchers("/api/upload/**").hasRole("admin")
+                .requestMatchers("/api/stat/**").hasRole("admin")
+                // 3. 需认证的接口（通用会员/已登录）
                 .requestMatchers("/api/member/info").authenticated()
                 .requestMatchers("/api/card/buy").authenticated()
                 .requestMatchers("/api/card/refund/**").authenticated()
+                .requestMatchers("/api/card/confirm-payment/**").authenticated()
+                .requestMatchers("/api/card/reject-payment/**").authenticated()
                 .requestMatchers("/api/card/my").authenticated()
-                .requestMatchers("/api/booking/**").authenticated()
+                .requestMatchers("/api/booking/add", "/api/booking/update", "/api/booking/my").authenticated()
+                .requestMatchers("/api/booking/confirm/**", "/api/booking/cancel/**").authenticated()
+                .requestMatchers("/api/booking/confirm-refund/**").authenticated()
                 .requestMatchers("/api/pose/**").authenticated()
-                // 3. 写操作需登录（教练、课程、banner、器材）
-                .requestMatchers("/api/coach/add", "/api/coach/update", "/api/coach/delete").authenticated()
-                .requestMatchers("/api/course/add", "/api/course/update", "/api/course/delete").authenticated()
-                .requestMatchers("/api/banner/add", "/api/banner/update", "/api/banner/delete").authenticated()
-                .requestMatchers("/api/equipment/add", "/api/equipment/update", "/api/equipment/delete").authenticated()
-                .requestMatchers("/api/cardtype/add", "/api/cardtype/update", "/api/cardtype/delete").authenticated()
-                // 写操作需登录（配置保存、文件上传）
-                .requestMatchers("/api/config/save").authenticated()
-                .requestMatchers("/api/upload").authenticated()
-                // 统计数据需登录
-                .requestMatchers("/api/stat/**").authenticated()
-                // 4. 其他所有请求放行
-                .anyRequest().permitAll()
+                // 4. 其他所有请求需认证（防止遗漏的接口被匿名访问）
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

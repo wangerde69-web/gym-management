@@ -34,9 +34,4 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
         return jwtUtil.generateToken(admin.getId(), "admin");
     }
-
-    @Override
-    public Admin getInfo(Integer id) {
-        return this.getById(id);
-    }
 }

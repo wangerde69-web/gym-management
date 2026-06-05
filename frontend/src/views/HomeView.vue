@@ -264,7 +264,7 @@
         <input ref="avatarInput" type="file" accept="image/*" hidden @change="onAvatarChange" />
         <n-input v-model:value="pf.name" placeholder="姓名" size="large" />
         <n-input v-model:value="pf.username" placeholder="用户名" size="large" />
-        <n-input v-model:value="pf.password" type="password" placeholder="留空不修改密码" size="large" />
+        <n-input v-model:value="pf.password" type="password" show-password-on="click" placeholder="留空不修改密码" size="large" />
         <n-input v-model:value="pf.phone" placeholder="手机号" size="large" />
         <n-radio-group v-model:value="pf.gender" name="gender">
           <n-space><n-radio :value="1">男</n-radio><n-radio :value="0">女</n-radio></n-space>
@@ -305,8 +305,9 @@ const navs = [
 const banners = ref([]), courses = ref([]), coaches = ref([]), equipments = ref([])
 const stats = reactive({ memberCount: 0, coachCount: 0, courseCount: 0 })
 const cfg = ref({})
-// 登录状态判断（基于本地 Token）
-const isLoggedIn = computed(() => !!localStorage.getItem('token'))
+// 登录状态判断（使用 ref + 监听 storage 事件以保持响应式）
+const isLoggedIn = ref(!!localStorage.getItem('token'))
+function onStorage() { isLoggedIn.value = !!localStorage.getItem('token') }
 
 // 引用
 const heroTag = ref(null), heroTitle = ref(null)
@@ -840,6 +841,18 @@ function onUserMenu(key) {
   else baseOnMenu(key)
 }
 
+// XSS 防护：HTML 转义和 URL 安全校验
+function escapeHtml(s) {
+  if (!s) return ''
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+function sanitizeUrl(url) {
+  if (!url) return ''
+  // 只允许 http/https 和相对路径
+  if (/^(https?:\/\/|\/)/.test(url)) return url
+  return ''
+}
+
 const profileVisible = ref(false)
 const pf = reactive({ id: null, avatar: '', name: '', username: '', password: '', phone: '', gender: 1 })
 const avatarInput = ref(null)
@@ -854,7 +867,7 @@ function openProfile() {
   request.get('/member/info').then(r => {
     if (r.code === 200 && r.data) Object.assign(pf, { ...r.data, password: '' })
     profileVisible.value = true
-  })
+  }).catch(() => message.error('加载失败'))
 }
 
 function saveProfile() {
@@ -865,7 +878,7 @@ function saveProfile() {
       localStorage.setItem('avatar', pf.avatar)
       localStorage.setItem('name', pf.name)
     }
-  })
+  }).catch(() => message.error('保存失败'))
 }
 
 const infoVisible = ref(false), infoTitle = ref(''), infoContent = ref('')
@@ -880,11 +893,11 @@ function showInfo(type) {
       const l = JSON.parse(cfg.value.store_address || '[]')
       infoContent.value = Array.isArray(l) && l.length
         ? l.map(a => {
-            let h = ''; if (a.image) h += '<img src="' + a.image + '" style="max-width:100%;margin:8px 0;border-radius:8px;display:block"/>'
-            h += '<p>' + (a.address || '') + '</p><p>电话: ' + (a.phone || '') + '</p>'; return h
+            let h = ''; if (a.image) h += '<img src="' + sanitizeUrl(a.image) + '" style="max-width:100%;margin:8px 0;border-radius:8px;display:block"/>'
+            h += '<p>' + escapeHtml(a.address || '') + '</p><p>电话: ' + escapeHtml(a.phone || '') + '</p>'; return h
           }).join('<hr style="border-color:#333;margin:12px 0">')
         : '暂无门店信息'
-    } catch { infoContent.value = cfg.value.store_address || '暂无门店信息' }
+    } catch { infoContent.value = escapeHtml(cfg.value.store_address || '暂无门店信息') }
   }
   infoVisible.value = true
 }
@@ -905,7 +918,7 @@ function fetchIndex() {
       stats.coachCount = r.coachCount ?? ((r.coaches || []).length || 0)
       stats.courseCount = r.courseCount ?? ((r.courses || []).length || 0)
     }
-  })
+  }).catch(() => message.error('加载首页数据失败'))
 }
 
 // 从其他页面跳转时自动打开修改资料弹窗
@@ -913,6 +926,7 @@ watch(() => route.query.profile, (v) => { if (v === '1') openProfile() })
 
 // 页面挂载：拉取数据并延迟初始化各类动画效果
 onMounted(() => {
+  window.addEventListener('storage', onStorage)
   fetchIndex()
   setTimeout(() => {
     initHero()
@@ -928,6 +942,7 @@ onMounted(() => {
 
 // 页面卸载：清理动画帧、事件监听器、定时器和观察器
 onUnmounted(() => {
+  window.removeEventListener('storage', onStorage)
   if (heroParticlesAnimId) cancelAnimationFrame(heroParticlesAnimId)
   if (heroResizeHandler) window.removeEventListener('resize', heroResizeHandler)
   if (ctaParticlesAnimId) cancelAnimationFrame(ctaParticlesAnimId)

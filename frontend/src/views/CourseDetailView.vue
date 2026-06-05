@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { NButton, NTag, NDatePicker, NSpace, useMessage } from 'naive-ui'
 import request from '@/api'
@@ -78,8 +78,11 @@ const c = ref(null), coach = ref(null), bd = ref(new Date().toISOString().split(
 const payRef = ref(null)
 const message = useMessage()
 
-// 登录状态判断
-const logged = computed(() => !!localStorage.getItem('token'))
+// 登录状态判断（使用 ref + 监听 storage 事件以保持响应式）
+const logged = ref(!!localStorage.getItem('token'))
+function onStorage() { logged.value = !!localStorage.getItem('token') }
+onMounted(() => window.addEventListener('storage', onStorage))
+onUnmounted(() => window.removeEventListener('storage', onStorage))
 // 可选预约时间段
 const allSlots = ['08:00-09:00', '09:00-10:00', '10:00-11:00', '14:00-15:00', '15:00-16:00', '16:00-17:00', '19:00-20:00', '20:00-21:00']
 // 选今天时自动过滤已过的时间段
@@ -131,7 +134,7 @@ onMounted(() => {
       c.value = r.data.course
       if (r.data.coach) coach.value = r.data.coach
     }
-  })
+  }).catch(() => message.error('课程加载失败'))
 })
 </script>
 

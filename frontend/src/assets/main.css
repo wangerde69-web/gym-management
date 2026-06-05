@@ -128,6 +128,3 @@ body {
 .page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
 .back-link { color: var(--text-muted); text-decoration: none; font-size: var(--text-base); }
 
-/* 头像上传框：80×80 圆形 dashed 边框，LoginView 与 HomeView 共用 */
-.avatar-uploader { width: 80px; height: 80px; border-radius: 50%; border: 2px dashed rgba(201, 169, 110, 0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; transition: border-color .2s; }
-.avatar-uploader:hover { border-color: var(--gold); }

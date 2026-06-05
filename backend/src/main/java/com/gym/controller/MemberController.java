@@ -5,7 +5,6 @@ import com.gym.config.AuthHelper;
 import com.gym.config.ExcelUtil;
 import com.gym.entity.Member;
 import com.gym.service.MemberService;
-import com.gym.config.JwtUtil;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,24 +26,15 @@ public class MemberController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
     private AuthHelper auth;
 
     // 会员登录：校验用户名密码并返回 JWT 令牌及会员基本信息
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> params) {
         try {
-            Member member = memberService.login(params.get("username"), params.get("password"));
-            String token = jwtUtil.generateToken(member.getId(), "member");
+            Map<String, Object> data = memberService.login(params.get("username"), params.get("password"));
             Map<String, Object> result = auth.ok();
-            result.put("token", token);
-            result.put("memberId", member.getId());
-            result.put("username", member.getUsername());
-            result.put("name", member.getName());
-            result.put("imageUrl", member.getAvatar());
-            result.put("role", "member");
+            result.putAll(data);
             return result;
         } catch (Exception e) {
             return auth.resp(500, e.getMessage());
@@ -128,7 +118,7 @@ public class MemberController {
                 row.createCell(1).setCellValue(m.getName() != null ? m.getName() : "");
                 row.createCell(2).setCellValue(m.getUsername() != null ? m.getUsername() : "");
                 row.createCell(3).setCellValue(m.getPhone() != null ? m.getPhone() : "");
-                row.createCell(4).setCellValue(m.getGender() != null && m.getGender() == 1 ? "男" : "女");
+                row.createCell(4).setCellValue(m.getGender() != null ? (m.getGender() == 1 ? "男" : "女") : "未知");
                 row.createCell(5).setCellValue(m.getAge() != null ? m.getAge().doubleValue() : 0);
                 row.createCell(6).setCellValue(m.getStatus() != null && m.getStatus() == 1 ? "正常" : "停用");
                 row.createCell(7).setCellValue(m.getCreateTime() != null ? m.getCreateTime().format(formatter) : "");

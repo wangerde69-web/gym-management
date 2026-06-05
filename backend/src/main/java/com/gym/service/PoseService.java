@@ -1,11 +1,13 @@
 package com.gym.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -79,14 +81,14 @@ public class PoseService {
 
             // 读取 stdout
             StringBuilder output = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) output.append(line);
             }
 
             // 读取 stderr
             StringBuilder errOutput = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) errOutput.append(line);
             }
@@ -108,7 +110,7 @@ public class PoseService {
             }
 
             // 解析 Python 返回的 JSON
-            Map<String, Object> pythonResult = objectMapper.readValue(output.toString(), Map.class);
+            Map<String, Object> pythonResult = objectMapper.readValue(output.toString(), new TypeReference<Map<String, Object>>() {});
             if (pythonResult.containsKey("error")) {
                 result.put("code", 500);
                 result.put("msg", pythonResult.get("error"));

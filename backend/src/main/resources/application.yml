@@ -11,12 +11,12 @@ server:
 spring:
   application:
     name: gym-server
-  # MySQL 数据源配置
+  # MySQL 数据源配置（生产环境请将密码写入环境变量 ${DB_PASSWORD} 或使用外部配置中心）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/gym?useUnicode=true&characterEncoding=utf8&connectionCharacterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: 123456
+    password: 123456  # TODO: 生产环境替换为 ${DB_PASSWORD}
   # 文件上传大小限制
   servlet:
     multipart:
@@ -31,9 +31,9 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-# JWT 令牌配置：签名密钥与过期时间（毫秒）
+# JWT 令牌配置：签名密钥与过期时间（毫秒）（生产环境请使用足够复杂且随机的密钥，建议从环境变量读取）
 jwt:
-  secret: gym-secret-key-2024-springboot-vue3-jwt-token
+  secret: gym-secret-key-2024-springboot-vue3-jwt-token  # TODO: 生产环境替换为 ${JWT_SECRET}
   expiration: 86400000
 
 # LLM 大模型配置：用于体态分析的 AI 增强接口
